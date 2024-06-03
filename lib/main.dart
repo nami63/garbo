@@ -4,8 +4,18 @@ import 'package:garbo/screens/landing.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
+  try {
+    FirebaseOptions options = FirebaseOptions(
+      apiKey: 'AIzaSyD-wowkyK_iDUFxD7FeRRDSM5T6q7FQKdI',
+      appId: '1:576873723625:android:bdb8170dcd48f2d57be278',
+      messagingSenderId: '576873723625',
+      projectId: 'garbo-85be1',
+    );
+    await Firebase.initializeApp(options: options);
+    runApp(const MyApp());
+  } catch (e) {
+    print("Firebase initialization error: $e");
+  }
 }
 
 class MyApp extends StatelessWidget {

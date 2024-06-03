@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:garbo/screens/profilepage.dart';
 import 'package:garbo/screens/register.dart';
+import 'package:garbo/services/fire_auth.dart';
+import 'package:garbo/services/validator.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,111 +13,180 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+
   final _emailTextController = TextEditingController();
   final _passwordTextController = TextEditingController();
+
   final _focusEmail = FocusNode();
   final _focusPassword = FocusNode();
 
-  get user => null;
+  bool _isProcessing = false;
 
-  @override
-  void dispose() {
-    _emailTextController.dispose();
-    _passwordTextController.dispose();
-    _focusEmail.dispose();
-    _focusPassword.dispose();
-    super.dispose();
+  Future<FirebaseApp> _initializeFirebase() async {
+    FirebaseApp firebaseApp = await Firebase.initializeApp();
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => ProfilePage(
+            user: user,
+          ),
+        ),
+      );
+    }
+
+    return firebaseApp;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              TextFormField(
-                controller: _emailTextController,
-                focusNode: _focusEmail,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) => _validateEmail(value),
-              ),
-              SizedBox(height: 8.0),
-              TextFormField(
-                controller: _passwordTextController,
-                focusNode: _focusPassword,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) => _validatePassword(value),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await _signInWithEmailAndPassword();
-                  }
-                },
-                child: Text('Sign In'),
-              ),
-              SizedBox(height: 8.0),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => RegisterPage()),
-                  );
-                },
-                child: Text('Create an account'),
-              ),
-            ],
-          ),
+    return GestureDetector(
+      onTap: () {
+        _focusEmail.unfocus();
+        _focusPassword.unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Firebase Authentication'),
+        ),
+        body: FutureBuilder(
+          future: _initializeFirebase(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 24.0, right: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: Text(
+                        'Login',
+                        style: Theme.of(context).textTheme.headline1,
+                      ),
+                    ),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: <Widget>[
+                          TextFormField(
+                            controller: _emailTextController,
+                            focusNode: _focusEmail,
+                            validator: (value) => Validator.validateEmail(
+                              email: value,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Email",
+                              errorBorder: UnderlineInputBorder(
+                                borderRadius: BorderRadius.circular(6.0),
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8.0),
+                          TextFormField(
+                            controller: _passwordTextController,
+                            focusNode: _focusPassword,
+                            obscureText: true,
+                            validator: (value) => Validator.validatePassword(
+                              password: value,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Password",
+                              errorBorder: UnderlineInputBorder(
+                                borderRadius: BorderRadius.circular(6.0),
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 24.0),
+                          _isProcessing
+                              ? CircularProgressIndicator()
+                              : Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          _focusEmail.unfocus();
+                                          _focusPassword.unfocus();
+
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            setState(() {
+                                              _isProcessing = true;
+                                            });
+
+                                            User? user = await FireAuth
+                                                .signInUsingEmailPassword(
+                                              email: _emailTextController.text,
+                                              password:
+                                                  _passwordTextController.text,
+                                              context: null,
+                                            );
+
+                                            setState(() {
+                                              _isProcessing = false;
+                                            });
+
+                                            // ignore: unnecessary_null_comparison
+                                            if (user != null) {
+                                              Navigator.of(context)
+                                                  .pushReplacement(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ProfilePage(user: user),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Text(
+                                          'Sign In',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 24.0),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  RegisterPage(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          'Register',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              );
+            }
+
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
         ),
       ),
     );
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email can\'t be empty';
-    }
-    RegExp emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegExp.hasMatch(value)) {
-      return 'Enter a valid email address';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password can\'t be empty';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters long';
-    }
-    return null;
-  }
-
-  Future<void> _signInWithEmailAndPassword() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailTextController.text,
-        password: _passwordTextController.text,
-      );
-      // Handle successful sign in
-      print('User signed in: ${userCredential.user!.uid}');
-
-      // Navigate to the profile page
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => ProfilePage(user: user)),
-      );
-    } on FirebaseAuthException catch (e) {
-      // Handle sign in errors
-      print('Failed to sign in: ${e.message}');
-    }
   }
 }

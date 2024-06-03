@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '576873723625',
     projectId: 'garbo-85be1',
     authDomain: 'garbo-85be1.firebaseapp.com',
+    databaseURL: 'https://garbo-85be1-default-rtdb.firebaseio.com',
     storageBucket: 'garbo-85be1.appspot.com',
     measurementId: 'G-VMCVJ1YGC1',
   );
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:576873723625:android:bdb8170dcd48f2d57be278',
     messagingSenderId: '576873723625',
     projectId: 'garbo-85be1',
+    databaseURL: 'https://garbo-85be1-default-rtdb.firebaseio.com',
     storageBucket: 'garbo-85be1.appspot.com',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:576873723625:ios:ac8cefc4a30e90ba7be278',
     messagingSenderId: '576873723625',
     projectId: 'garbo-85be1',
+    databaseURL: 'https://garbo-85be1-default-rtdb.firebaseio.com',
     storageBucket: 'garbo-85be1.appspot.com',
     iosBundleId: 'com.example.garbo',
   );
@@ -72,6 +75,7 @@ class DefaultFirebaseOptions {
     appId: '1:576873723625:ios:ac8cefc4a30e90ba7be278',
     messagingSenderId: '576873723625',
     projectId: 'garbo-85be1',
+    databaseURL: 'https://garbo-85be1-default-rtdb.firebaseio.com',
     storageBucket: 'garbo-85be1.appspot.com',
     iosBundleId: 'com.example.garbo',
   );
@@ -82,7 +86,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '576873723625',
     projectId: 'garbo-85be1',
     authDomain: 'garbo-85be1.firebaseapp.com',
+    databaseURL: 'https://garbo-85be1-default-rtdb.firebaseio.com',
     storageBucket: 'garbo-85be1.appspot.com',
     measurementId: 'G-FNGHSG8L08',
   );
+
 }
